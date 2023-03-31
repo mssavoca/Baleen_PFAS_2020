@@ -1,4 +1,4 @@
-# Prepping corrected PFAS data for analysis ----
+# Prepping PFAS data for analysis ----
 
 source("Util.R")
 

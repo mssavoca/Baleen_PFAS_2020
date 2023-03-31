@@ -1,10 +1,12 @@
 # Utilities file for data cleaning and analysis
 
+install.packages(c("tidyverse", "readxl", "NADA", "NADA2",))
+
 library(tidyverse)
 library(readxl)
 library(NADA)
 library(NADA2)
-library(forcats)
+library(lme4)
 
 
 Baleen_PFAS_samples <- read_xlsx("Baleen-PFAS master sample list.xlsx")
