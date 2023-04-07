@@ -10,7 +10,7 @@ library(pals)
 library(ggpubr)
 
 
-# 10 comopounds that show up in at least 40% of all samples, plus PFOA
+# 10 compounds that show up in at least 40% of all samples, plus PFOA
 PFASofInterest <- Congener_screen$Compound[1:11]
 PFASofInterest <- c("PFHxA", "PFHxS", "PFOA", "PFOS", "FOSA", "PFNA", 
                     "PFDA", "PFUdA", "PFDoA", "PFtrDA", "PFTeDA")
