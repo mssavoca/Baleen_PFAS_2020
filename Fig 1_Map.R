@@ -101,6 +101,34 @@ ggsave("PFAS_baleen_insetmap.pdf")
 
 # Junk code below here ----
 
+# Inset map for OPC MP RFP
+interest_region <- c(left=-122.25,bottom=36.5,right=-121.75,top=37)
+x <- c(interest_region["left"], interest_region["left"], 
+       interest_region["right"], interest_region["right"])
+y <- c(interest_region["bottom"], interest_region["top"], 
+       interest_region["top"], interest_region["bottom"])
+df_CA <- data.frame(x, y)
+
+
+MP_OPC_RFP_zoomout <- ggOceanMaps::basemap(limits = c(-124, -119.5, 33.5, 39), 
+                                            lon.interval = 2, lat.interval = 2) +
+  annotation_north_arrow(location = "bl", which_north = "true", height = unit(2.5, "cm"),
+                         width = unit(2, "cm"), text_cex = 1.5) +
+  annotation_scale(location = "br", line_width = 2,
+                   height = unit(.75, "cm"), text_cex = 1.5) +
+  geom_polygon(aes(x=x, y=y), data=df_CA, fill = NA, 
+               color = "black", size = 1.75) +
+  labs(x = NULL, y = NULL) +
+  theme_bw(base_size = 22)
+MP_OPC_RFP_zoomout
+
+ggsave("MP_OPC_RFP_zoomout.pdf")  
+
+PFAS_baleen_zoomout
+
+
+ggsave("PFAS_baleen_insetmap.pdf")  
+
 
 library(sf)
 library(ggmap)
