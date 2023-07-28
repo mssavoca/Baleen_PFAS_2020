@@ -18,6 +18,76 @@ PFASWTCompSum <- PFAS_full_data_comb %>%
 
 
 
+  
+PFASCompSumAllTiss <- PFAS_full_data_comb %>% 
+  filter(Compound %in% PFASofInterest,
+         Sample_type != "gum-baleen interface",
+         ifelse(Sample_type == "baleen", if_else(ID_code == "IFAW13-158Mn", 
+                                                 Sample_seq == 2, Sample_seq == 1), TRUE)) %>% 
+  group_by(ID_code, Sample_type, Plate_num, Compound) %>% 
+  summarise(Total_PFAS = sum(Conc_Corr_num, na.rm = TRUE),
+            SciName = first(SciName)) %>% 
+  arrange(-Total_PFAS) %>% 
+  ungroup() %>% 
+  mutate(
+    Combined_Column = ifelse(is.na(Plate_num), Sample_type, 
+                             paste(Sample_type, ifelse(Plate_num == 2, "p2", "p1"), sep = " "))
+  )
+  
+
+
+
+levels_of_Combined <- c("liver", "baleen p1", "baleen p2", "gum", "skin", "blubber")
+PFASCompSumAllTiss$Combined_Column <- factor(PFASCompSumAllTiss$Combined_Column, levels = levels_of_Combined)
+
+PFAS_by_Tiss <- ggplot(filter(PFASCompSumAllTiss, 
+                              ID_code %in% c("IFAW13-158Mn", "IFAW16-227Mn",
+                                             "IFAW19-287Mn", "IFAW20-009Mn",
+                                             "IFAW17-182Eg")), 
+                       aes(x = Combined_Column, 
+                           y = Total_PFAS, 
+                           fill = Compound)) +
+  geom_col() +
+  labs(x = "Tissue type", y = "Total PFAS (ng/g)", fill = "Compound") +
+  facet_wrap(.~ID_code, scales = "free") +
+  scale_fill_manual(values = Compounds_pal) +
+  #scale_y_break(30) +
+  theme_bw(base_size = 22) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+PFAS_by_Tiss
+
+ggsave("PFAS_by_Tiss_v2.pdf", PFAS_by_Tiss, width = 13.25, height = 9)
+
+
+
+PFAS_by_Tiss_prop <- ggplot(filter(PFASCompSumAllTiss, 
+                              ID_code %in% c("IFAW13-158Mn", "IFAW16-227Mn",
+                                             "IFAW19-287Mn", "IFAW20-009Mn",
+                                             "IFAW17-182Eg")), 
+                            aes(x = Combined_Column, 
+                                y = Total_PFAS, 
+                                fill = Compound)) +
+  geom_bar(position = "fill", stat = "identity") +
+  labs(x = "Tissue type", y = "Proportion PFAS", fill = "Compound") +
+  facet_wrap(.~ID_code, scales = "free") +
+  scale_fill_manual(values = Compounds_pal) +
+  theme_bw(base_size = 22) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+PFAS_by_Tiss_prop 
+
+ggsave("PFAS_by_Tiss_prop_v2.pdf", PFAS_by_Tiss_prop, width = 13.5, height = 9)
+
+
+
+
+
+
+# Junk code below here 
+
+
+
+
 # Reorder the Compound variable according to the specified order
 #PFASBaleenCompSum$Compound <- factor(PFASBaleenCompSum$Compound, levels = PFASofInterest)
 
@@ -56,81 +126,14 @@ WT_stacked_BP_prop
 
 ggsave("WT_stacked_BP_prop.pdf")
 
-  
-  
-
-  
-PFASCompSumAllTiss <- PFAS_full_data_comb %>% 
-  filter(Compound %in% PFASofInterest,
-         Sample_type != "gum-baleen interface",
-         ifelse(Sample_type == "baleen", if_else(ID_code == "IFAW13-158Mn", 
-                                                 Sample_seq == 2, Sample_seq == 1), TRUE)) %>% 
-  group_by(ID_code, Sample_type) %>% 
-  summarise(Total_PFAS = sum(Conc_Corr_num, na.rm = TRUE),
-            SciName = first(SciName)) %>% 
-  arrange(-Total_PFAS) %>% 
-  # mutate(PFAS_ratio = ifelse(Sample_type == "liver" & Compound %in% PFASofInterest,
-  #                            Total_PFAS / sum(PFASCompSumAllTiss$Total_PFAS[PFASCompSumAllTiss$Sample_type == "baleen"]), 
-  #                            NA)) %>% 
-  ungroup()
-
-  
-  
-PFAS_by_Tiss <- ggplot(filter(PFASCompSumAllTiss, 
-                              ID_code %in% c("IFAW13-158Mn", "IFAW16-227Mn",
-                                             "IFAW19-287Mn", "IFAW20-009Mn",
-                                             "IFAW17-182Eg")), 
-                          aes(x = reorder(Sample_type, -Total_PFAS), 
-                              y = Total_PFAS, 
-                              fill = Compound)) +
-  geom_col() +
-  labs(x = "Tissue type", y = "Total PFAS (ng/g)", fill = "Compound") +
-  facet_wrap(.~ID_code, scales = "free") +
-  scale_fill_manual(values = Compounds_pal) +
-  theme_bw(base_size = 18) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-PFAS_by_Tiss 
-
-ggsave("PFAS_by_Tiss.pdf")
-
-
-
-PFAS_by_Tiss_prop <- ggplot(filter(PFASCompSumAllTiss, 
-                              ID_code %in% c("IFAW13-158Mn", "IFAW16-227Mn",
-                                             "IFAW19-287Mn", "IFAW20-009Mn",
-                                             "IFAW17-182Eg")), 
-                       aes(x = reorder(Sample_type, -Total_PFAS), 
-                           y = Total_PFAS/sum(Total_PFAS), 
-                           fill = Compound)) +
-  geom_bar(position = "fill", stat = "identity") +
-  labs(x = "Tissue type", y = "Proportion PFAS", fill = "Compound") +
-  facet_wrap(.~ID_code, scales = "free") +
-  scale_fill_manual(values = Compounds_pal) +
-  theme_bw(base_size = 18) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-PFAS_by_Tiss_prop 
-
-ggsave("PFAS_by_Tiss_prop.pdf")
 
 
 
 
+Wet_tissues_congener_screen <- read_csv("20230630_Wet_DetFreq.csv")
 
 
-
-
-
-
-# Junk code below here 
-
-
-
-
-
-Wet_tissues_congener_screen <- read_csv("20220409_Wet_DetFreq.csv")
-
-
-PFAS_wet_tissues <- read_csv("20220409_Wet_AreaCorrMassCorr.csv") %>% 
+PFAS_wet_tissues <- read_csv("20230630_Wet_AreaCorrMassCorr.csv") %>% 
   rename("Sample_num" = "Sample_Num") %>% 
   mutate(Sample_type = case_when(Matrix == "Skin" ~ "skin",
                                  Matrix == "Blubber" ~ "blubber",

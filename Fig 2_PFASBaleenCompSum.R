@@ -12,7 +12,6 @@ library(ggpubr)
 
 
 
-
 # 10 comopounds that show up in at least 40% of all samples, plus PFOA
 PFASofInterest <- Congener_screen$Compound[1:11]
 PFASofInterest <- c("PFHxA", "PFHxS", "PFOA", "PFOS", "FOSA", "PFNA", "PFDA", "PFUdA", "PFDoA", "PFtrDA", "PFTeDA")
@@ -24,9 +23,10 @@ PFASBaleenCompSum <- Baleen_PFAS_data_comb %>%
          Sample_type == "baleen",
          !is.na(Sample_seq),
          is.finite(Sample_seq)) %>% 
-  group_by(ID_code, Sample_seq) %>% 
+  group_by(ID_code, Sample_seq, Plate_num) %>% 
   summarise(Total_PFAS = sum(Conc_Corr_num, na.rm = TRUE),
             SciName = first(SciName)) %>% 
+  mutate(Plate_num = as.factor(Plate_num)) %>% 
   arrange(-Total_PFAS) %>% 
   ungroup()
 
@@ -36,7 +36,7 @@ filter () %>%
   select () %>% 
   summarise() %>% 
   mutate() %>% 
-  arrang
+  arrange
 # Plot without blue whale because only have one observation
 # Plot without two Minke whales that have only one data point
 PFAS_BCS_woBwMn <-  ggplot(filter(PFASBaleenCompSum, 
@@ -45,7 +45,7 @@ PFAS_BCS_woBwMn <-  ggplot(filter(PFASBaleenCompSum,
                            aes(x = -Sample_seq, y = Total_PFAS, 
                                color = abbr_binom(SciName),
                                shape = ID_code)) + 
-  geom_line(size = 1.5) + 
+  geom_line(linewidth = 1.5) + 
   geom_point(size = 3.5) + 
   labs(x = "", 
        y = "Total PFAS (ng/g baleen)", 
@@ -70,24 +70,26 @@ ggsave("PFAS_BCS_woBwMn.pdf")
 # Plot without "IFAW13-158Mn" because has only have one observation
 PFAS_BCS_MnOnly <- ggplot(filter(PFASBaleenCompSum, 
                                  SciName =="Megaptera novaeangliae",
-                                 ID_code != "IFAW13-158Mn"),
-                          aes(x = -Sample_seq, y = Total_PFAS, color = abbr_binom(SciName))) + 
-  geom_line(size = 1.25) + 
-  geom_point(size = 3) + 
+                                 !ID_code %in% c("IFAW13-158Mn", "IFAW16-227Mn",
+                                                 "IFAW17-274Mn", "IFAW17-317Mn")),
+                          aes(x = -Sample_seq, y = Total_PFAS, color = abbr_binom(SciName),
+                              linetype = Plate_num, shape = Plate_num)) + 
+  geom_line(size = 1) + 
+  geom_point(size = 2.5) + 
   labs(x = "Baleen sample sequence", 
        y = "Total PFAS (ng/g baleen)") + 
-  facet_wrap(.~ID_code, scales = "free", ncol = 5, nrow = 2) +
+  facet_wrap(.~ID_code, scales = "free", ncol = 3, nrow = 2) +
   scale_colour_manual(values = pal,
                       guide = guide_legend(label.theme = element_text(face = "italic", size = 10))) +
   scale_x_continuous(labels = function(x) round(abs(x)), limits = c(NA, -1), 
                      breaks = seq(-1, -100, -4)
                      ) + # Set x-axis limits and ticks
-  theme_bw(base_size = 18) +
+  theme_bw(base_size = 20) +
   theme(legend.position = "none")
 
 PFAS_BCS_MnOnly
 
-ggsave("PFAS_BCS_MnOnly.pdf")
+ggsave("PFAS_BCS_MnOnly_v2.pdf", PFAS_BCS_MnOnly, width = 14, height = 6)
 
 
 PFAS_BCS_comb <- ggarrange(PFAS_BCS_woBwMn, PFAS_BCS_MnOnly,
@@ -95,4 +97,52 @@ PFAS_BCS_comb <- ggarrange(PFAS_BCS_woBwMn, PFAS_BCS_MnOnly,
                            ncol = 1, nrow = 2,
                            padding = 0.1)
 PFAS_BCS_comb
+
+
+
+
+
+
+# PFAS:FOSA ratio plots along the plate ----
+
+
+# Function to create ggplot for each ratio column and save the plot
+create_ratio_plot <- function(data, ratio_column) {
+  plot <- ggplot(data, aes(x = -Sample_seq, y = .data[[ratio_column]])) +
+    geom_point() +
+    geom_line() +
+    labs(x = "Sample_seq", y = ratio_column) +
+    facet_wrap(Plate_num ~ ID_code, scales = "free") +
+    scale_x_continuous(labels = function(x) round(abs(x)), limits = c(NA, -1), 
+                       breaks = seq(-1, -100, -4))
+  
+  # Generate a unique file name based on the ratio column
+  file_name <- paste0(ratio_column, ".png")
+  
+  # Save the plot as a PNG file
+  ggsave(plot, file = file_name, width = 10, height = 7.5, dpi = 300)
+  
+  # Return the plot
+  return(plot)
+}
+
+# Define the ratio columns
+ratio_columns <- c("Ratio_PFOS_FOSA", "Ratio_PFOS_PFUdA", "Ratio_FOSA_PFUdA")
+
+# Filter the data for ID_code with more than three Sample_seq values
+filtered_data <- Baleen_PFAS_ratios %>%
+  group_by(ID_code) %>%
+  filter(
+    !ID_code %in% c("COA16-06098Bb", "GLBP1-3"), # removing individuals with lots of zeros across plots
+    n_distinct(Sample_seq) > 3) %>%
+  ungroup()
+
+# Apply the map function to create plots for each ratio column and save the plots
+plots <- map(ratio_columns, ~create_ratio_plot(filtered_data, .x))
+
+# Display the plots
+plots
+
+
+
   
