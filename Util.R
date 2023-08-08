@@ -36,8 +36,7 @@ shapes_custom <- c("IFAW13-158Mn" = 19, "IFAW20-009Mn" = 15,  "GLBW1-61-9" = 19,
 Compounds_pal <- c( "PFHxA" = "#1F78C8", "PFHxS" = "#ff0000", "PFOA" = "#33a02c",
                   "PFOS" = "#6A33C2", "FOSA" = "#ff7f00", "PFNA" = "#565656",
                   "PFDA" = "#FFD700", "PFUdA" = "#a6cee3", "PFDoA" = "#FB6496", 
-                  "PFtrDA" = "#b2df8a", "PFTeDA" = "#CAB2D6", "7:3 FTCA" = "#C8308C" ,
-                  "PFPeS" = "#FDBF6F")
+                  "PFtrDA" = "#b2df8a", "PFTeDA" = "#CAB2D6", "7:3 FTCA" = "#C8308C")
 
 # Define the order of the compounds
 PFASofInterest <- c("PFHxA", "PFHxS", "PFOA", "PFOS", "FOSA", "PFNA", 
@@ -113,12 +112,20 @@ Baleen_PFAS_data_comb <- left_join(PFAS_data_raw, Baleen_PFAS_samples,
                              Species == "Bb" ~ "Balaenoptera borealis",
                              Species == "Bw" ~ "Balaenoptera musculus",
                              Species == "Bp" ~ "Balaenoptera physalus",
-                             Species == "Eg" ~ "Eubalaena glacialis")
+                             Species == "Eg" ~ "Eubalaena glacialis"),
+         Troph_level = case_when(Species == "Mn" ~ 3.6,
+                                Species == "Ba" ~ 3.4,
+                                Species == "Bb" ~ 3.4,
+                                Species == "Bw" ~ 3.2,
+                                Species == "Bp" ~ 3.4,
+                                Species == "Eg" ~ 3.2)
   ) %>% 
   rename("Sample_seq" = "Sample_seq (if necessary)") %>% 
   group_by(ID_code, Sample_seq) %>%
   mutate(Sample_seq_reversed = rev(seq_along(Sample_seq))) %>%  # NOT WORKING!!!
-  ungroup() 
+  ungroup()
+
+saveRDS(Baleen_PFAS_data_comb, file = "Baleen_PFAS_data_comb.RDS")
 
 
 
