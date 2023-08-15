@@ -55,7 +55,9 @@ Baleen_stacked_BP <- ggplot(PFASBaleenCompSum,
                                 y = Total_PFAS, 
                                 fill = Compound)) +
   geom_col() +
-  labs(x = "", y = "Total PFAS (ng/g in newest baleen)", fill = "Compound") +
+  labs(x = "", 
+       y = bquote(paste("\u03A3"[11], "PFAS (ng/g d.w. in newest baleen)")),
+       fill = "Compound") +
   scale_fill_manual(values = Compounds_pal) +
   facet_grid(.~Coast, scales = "free", space ="free") +
   theme_bw(base_size = 18) +
@@ -63,7 +65,7 @@ Baleen_stacked_BP <- ggplot(PFASBaleenCompSum,
 
 Baleen_stacked_BP
 
-ggsave("Baleen_stacked_BP_v2.pdf", Baleen_stacked_BP, width = 12, height = 7)
+ggsave("Baleen_stacked_BP_v2.png", Baleen_stacked_BP, width = 12, height = 7)
 
 
 
