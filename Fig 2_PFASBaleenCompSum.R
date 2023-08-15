@@ -130,6 +130,9 @@ create_ratio_plot <- function(data, ratio_column) {
 # Define the ratio columns
 ratio_columns <- c("Ratio_PFOS_FOSA", "Ratio_PFOS_PFUdA", "Ratio_FOSA_PFUdA")
 
+saveRDS(Baleen_PFAS_ratios, "Baleen_PFAS_ratios.rds")
+
+
 # Filter the data for ID_code with more than three Sample_seq values
 filtered_data <- Baleen_PFAS_ratios %>%
   group_by(ID_code) %>%
