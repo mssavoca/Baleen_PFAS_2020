@@ -273,6 +273,38 @@ PFAS_Spinnaker_comb
 
 
 
+# Vector plate 1 evaluation for 
+
+
+Vector_baleen_df <- Baleen_PFAS_data_comb %>% 
+  filter(
+    ID_code == "IFAW19-287Mn",
+    Plate_num == 1,
+    Compound %in% c("PFOS", "FOSA", "PFUdA")
+  )
+
+
+
+PFAS_Comps_Vector_baleen <- ggplot(Vector_baleen_df,
+                                aes()) + 
+  geom_line(aes(x = -Sample_seq, y = Conc_Corr_num, color = Compound),
+            size = 1) + 
+  geom_point(aes(x = -Sample_seq, y = Conc_Corr_num, color = Compound),
+             size = 3) +
+  labs(x = "Baleen sample sequence", 
+       y = bquote(paste("PFAS (ng/g d.w.)"))
+  ) + 
+  facet_wrap(.~ID_code, scales = "free") +
+  scale_colour_manual(values = Compounds_pal,
+                      guide = guide_legend(label.theme = element_text(size = 10))) +
+  facet_wrap(~Compound, scales = "free") +
+  scale_x_continuous(expand = c(0,1), 
+                     labels = function(x) round(abs(x))) +
+  #ylim(10,40) +
+  theme_bw(base_size = 20) +
+  theme(legend.position = "none")
+PFAS_Comps_Vector_baleen
+
 
 
   
