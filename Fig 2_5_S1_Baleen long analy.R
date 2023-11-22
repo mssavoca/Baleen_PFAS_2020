@@ -147,7 +147,7 @@ plots
 
 
 
-# Zoomed in plot on specific whales of interest----
+# Fig. 5 Zoomed in plot on specific whales of interest----
 
 #NARW calf baleen plot
 
@@ -334,5 +334,41 @@ PFOS_Vector_baleen
 
 ggsave("PFOS_Vector_baleen.png", PFOS_Vector_baleen, width = 9, height = 5)
 #ggsave("PFAS_Comps_Vector_FOSA.png", PFAS_Comps_Vector_baleen, width = 5.8, height = 5)
+
+
+
+
+# Figure S1 all the individuals and compounds ----
+Long_test_baleen <- Baleen_PFAS_data_comb %>% 
+  filter(
+    ##### Compound %in% Congener_screen$Compound %>% slice(1:10),
+    Compound %in% c(Congener_screen$Compound[1:10]),
+    #ID_code == "COA16-06098Bb",
+    Sample_type == "baleen"
+  )
+
+
+
+# Split data by factor variable
+my_data_split <- split(Long_test_baleen, Long_test_baleen$Combined_Column_corr)
+
+
+
+
+# Loop through the list of split data and create separate plots----
+plot_list <- purrr::map(my_data_split, function(df) {
+  Long_test_plot <- ggplot(df, aes(-Sample_seq, Conc_Corr_num)) +
+    #geom_smooth() +
+    geom_point() + 
+    facet_wrap(Compound~., scales = "free_y") +
+    scale_x_continuous(expand = c(0,1), 
+                       labels = function(x) round(abs(x))
+    ) +
+    labs(title = df$Combined_Column_corr,
+         x = "Baleen sample sequence",
+         y = "Concentration in baleen (ng/g)"
+    )
+  ggsave(paste0(unique(df$Combined_Column_corr), ".pdf"), Long_test_plot)
+})
 
   

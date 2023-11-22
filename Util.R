@@ -39,7 +39,7 @@ Compounds_pal <- c( "PFHxA" = "#1F78C8", "PFHxS" = "#ff0000", "PFOA" = "#33a02c"
                   "PFtrDA" = "#b2df8a", "PFTeDA" = "#CAB2D6", "7:3 FTCA" = "#C8308C")
 
 # Define the order of the compounds
-PFASofInterest <- c("PFHxA", "PFHxS", "PFOA", "PFOS", "FOSA", "PFNA", 
+PFASofInterest <- c("PFHxA", "PFOA", "PFOS", "FOSA", "PFNA", 
                     "PFDA", "PFUdA", "PFDoA", "PFtrDA", "PFTeDA", 
                     "7:3 FTCA")
 
@@ -60,17 +60,17 @@ Baleen_PFAS_samples <- read_xlsx("Baleen-PFAS master sample list.xlsx")
 
 
 # Wet tissue data----
-Wet_tissues_congener_screen <- read_csv("20230630_Wet_DetFreq.csv")
+Wet_tissues_congener_screen <- read_xlsx("20231010_Wet_DetFreq.xlsx")
 
 
 
 
-PFAS_wet_tissues <- read_csv("20230630_Wet_AreaCorrMassCorr.csv") %>% 
+PFAS_wet_tissues <- read_csv("20231010_Wet_AreaCorrMassCorr_ProbCmpdsRemoved.csv") %>% 
   rename("Sample_num" = "Sample_Num") %>% 
   # mutate(Sample_type = case_when(Matrix == "Skin" ~ "skin",
   #                                Matrix == "Blubber" ~ "blubber",
   #                                Matrix == "Liver" ~ "liver")) %>% 
-  select(-Matrix, -`Sample Text`)
+  select(-Matrix)
 
 
 
@@ -96,8 +96,12 @@ PFAS_wet_tissues_comb <- left_join(Baleen_PFAS_samples, PFAS_wet_tissues,
 
 
 # Dry tissue (baleen and gum) data ---
-PFAS_data_raw <- read_csv("20220223_AreaCorrMassCorr.csv") %>% 
+PFAS_data_raw <- read_csv("20231010_AreaCorrMassCorr_ProbCmpdsRemoved.csv") %>% 
   rename("Sample_num" = "Sample_ID")
+
+
+PFAS_data_raw <- read_csv("20231010_AreaCorrMassCorr_ProbCmpdsRemoved.csv") %>% 
+  mutate(Sample_num = as.numeric(Sample_ID))
 
 
 Baleen_PFAS_data_comb <- left_join(PFAS_data_raw, Baleen_PFAS_samples,
@@ -118,11 +122,19 @@ Baleen_PFAS_data_comb <- left_join(PFAS_data_raw, Baleen_PFAS_samples,
                                 Species == "Bb" ~ 3.4,
                                 Species == "Bw" ~ 3.2,
                                 Species == "Bp" ~ 3.4,
-                                Species == "Eg" ~ 3.2)
-  ) %>% 
+                                Species == "Eg" ~ 3.2),
+         ID_code_corr = ifelse(ID_code == "COA03-Mn", "MH03602Mn",
+                               if_else(ID_code == "COA16-06098Bb", "COA150609Bb",
+                                       ifelse(ID_code == "COA14-0717Ba", "COA140717Ba",
+                                              ifelse(ID_code == "COA20-0804Ba", "COA200804Ba",
+                                                     ifelse(ID_code == "COA20-0808Ba", "COA200808Ba",
+                                                            ifelse(ID_code == "COA20-0804Ba", "COA200804Ba",
+                                                                   ifelse(ID_code == "COA1415-Mn", "COA141225Mn",
+                                                                          ifelse(ID_code == "COA15-0611Mn", "COA150611Mn", ID_code))))))))
+                               ) %>% 
   rename("Sample_seq" = "Sample_seq (if necessary)") %>% 
   group_by(ID_code, Sample_seq) %>%
-  mutate(Sample_seq_reversed = rev(seq_along(Sample_seq))) %>%  # NOT WORKING!!!
+  mutate(Sample_seq_reversed = rev(seq_along(Sample_seq))) %>%  
   ungroup()
 
 saveRDS(Baleen_PFAS_data_comb, file = "Baleen_PFAS_data_comb.RDS")
@@ -138,9 +150,10 @@ PFAS_full_data_comb <- merge(Baleen_PFAS_data_comb, PFAS_wet_tissues_comb, all =
 
 # Test which compounds are present in >40% of all samples
 Dry_tissues_congener_screen <- Baleen_PFAS_data_comb %>% 
+  filter(Sample_type != "gum") %>% 
   group_by(Compound) %>% 
   summarise(Incl_40 = sum(Detect_binary),
-            Overall_prop = Incl_40/230) %>%  #just dry tissue samples here
+            Overall_prop = Incl_40/220) %>%  #just dry tissue samples here
   arrange(-Incl_40)
   
 
@@ -154,12 +167,8 @@ Wet_tissues_congener_screen <- PFAS_wet_tissues_comb %>%
 
 
 # 10 compounds that show up in at least 40% of all samples, plus PFOA
-PFASWTofInterest <- Wet_tissues_congener_screen$Compound[1:9]
-PFASWTofInterest <- c("PFNA", "PFOS", "PFUdA", "7:3 FTCA", "FOSA", "PFtrDA", "PFDA", "PFDoA", "PFHxA", "PFOA")
+PFASWTofInterest <- Wet_tissues_congener_screen$Compound[1:8]
+PFASWTofInterest <- c("PFNA", "PFOS", "PFUdA", "7:3 FTCA", "FOSA", "PFtrDA", 
+                      "PFDA", "PFDoA", "PFHxA", "PFOA")
 
 
-
-
-
-
-  

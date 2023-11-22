@@ -73,3 +73,29 @@ FOSA_by_ind <- kruskal.test(FOSA ~ Mn_or_not, data = FOSA_baleen_idv)
 print(FOSA_by_ind)
 
 
+# PFAS_for_sp_comps <- PFAS_full_data_comb %>% 
+#   filter(
+#     Compound == "FOSA",
+#     Sample_type == "baleen",
+#     ifelse(Sample_type == "baleen", if_else(ID_code == "IFAW13-158Mn", 
+#                                             Sample_seq == 2, Sample_seq == 1), TRUE)) %>% 
+#   mutate(Compound = factor(Compound, levels = compounds_order),
+#          Mn_or_not = ifelse(Species == "Mn", "Mn", "not Mn")) %>% 
+#   group_by(Compound, Mn_or_not) %>% 
+#   summarise(med_val = median(Conc_Corr_num),
+#             sd_val = sd(Conc_Corr_num))
+# 
+# FOSAbySp <- kruskal.test(Conc_Corr_num ~ Prey, data = PFAS_for_sp_comps)
+
+
+# geographic comparison----
+PFAS_for_geo_comp <- PFAS_full_data_comb %>% 
+  filter(
+    Compound %in% PFASofInterest,
+    Sample_type == "baleen",
+    ifelse(Sample_type == "baleen", if_else(ID_code == "IFAW13-158Mn", 
+                                            Sample_seq == 2, Sample_seq == 1), TRUE)) %>%
+  group_by(Coast, Species) %>% 
+  summarise(med_val = median(Conc_Corr_num),
+            sd_val = sd(Conc_Corr_num))
+
