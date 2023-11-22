@@ -2,16 +2,16 @@
   # PFAS tables, summary tables, comparison tables, ratio tables across tissue types 
   # Matt Savoca
   # Started on: 7/18/23
---------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------
 
 
 
-View(PFAS_full_data_comb)
+#View(PFAS_full_data_comb)
 
 
 # Define the desired order of compounds
-compounds_order <- c("PFOA", "PFOS", "FOSA", "7:3 FTCA", "PFDA", 
-                     "PFNA", "PFUdA", "PFtrDA", "PFHxA", "PFHxS", "PFDoA")
+compounds_order <- c("PFOA", "PFOS", "FOSA", "7:3 FTCA", "PFDA", "PFNA", "PFUdA", "PFtrDA", "PFHxA", "PFHxS", "PFDoA")
+  
 
 
 # summary tables of PFAS data----
@@ -19,12 +19,13 @@ compounds_order <- c("PFOA", "PFOS", "FOSA", "7:3 FTCA", "PFDA",
 
 summ_pfas_baleen <- PFAS_full_data_comb %>%
   filter(
-    Sample_type == "liver",
-    Compound %in% c(PFASofInterest),
+    Sample_type == "baleen",
+    #Compound == "FOSA",
+    #Compound %in% PFASWTofInterest,
     #Sample_seq == 1,
     #Prey == "Zooplankton"
     ) %>%
-  group_by(ID_code) %>%
+  group_by(Sample_num) %>%
   summarise(
     Total_PFAS = sum(Conc_Corr_num, na.rm = TRUE),
     Median_Conc = median(Conc_Corr_num, na.rm = TRUE),
@@ -35,6 +36,20 @@ summ_pfas_baleen <- PFAS_full_data_comb %>%
 median(summ_pfas_baleen$Total_PFAS)
 sd(summ_pfas_baleen$Total_PFAS)
 
+
+summ_pfas_WetTissuestTissues <- PFAS_full_data_comb %>%
+  filter(
+    Compound %in% PFASWTofInterest,
+    Sample_type %in% c("blubber"),
+  ) %>%
+  group_by(ID_code, Compound) %>%
+  summarise(
+    Sample_type = first(Sample_type),
+    Total_PFAS = sum(Conc_Corr_num, na.rm = TRUE),
+    Median_Conc = median(Conc_Corr_num, na.rm = TRUE),
+    SD_Conc = sd(Conc_Corr_num, na.rm = TRUE)
+  ) %>%
+  ungroup()
 
 Summ_table_CompoundsListed <- PFAS_full_data_comb %>% 
   filter(Compound %in% PFASofInterest,
@@ -59,7 +74,7 @@ Summ_table_CompoundsListed_wide <- pivot_wider(
 ) %>% 
   arrange(Sample_type)
 
-write.csv(Summ_table_CompoundsListed_wide, "Summ table all compounds.csv", row.names = FALSE)
+write.csv(Summ_table_CompoundsListed_wide, "Summ table all compounds_v2.csv", row.names = FALSE)
 
 
 
@@ -109,7 +124,7 @@ Overall_summ_table_wide <- pivot_wider(
 ) %>%
   arrange(ID_code, Plate_num)
 
-write.csv(Overall_summ_table_wide, "Summ table top comps comb.csv", row.names = FALSE)
+write.csv(Overall_summ_table_wide, "Summ table top comps comb_v2.csv", row.names = FALSE)
 
 
 
@@ -125,11 +140,9 @@ PFAS_for_study_comp <- PFAS_full_data_comb %>%
 
 
 
-#Ratio tables----
 
+# Ratio tables----
 
-
-# Tissue-PFAS ratios----
 
 PFAS_by_Tiss_prop <- PFAS_full_data_comb %>% 
   filter(Compound %in% PFASofInterest,
@@ -162,16 +175,16 @@ ratio_df <- PFAS_by_Tiss_prop %>%
 
 # Compound PFAS ratios, across tissues----
 SpecPFASratios_df <- PFAS_full_data_comb %>% 
-  filter(Compound %in% c("PFOS", "FOSA", "PFUdA"),
-         Sample_type != "gum-baleen interface",
-         ID_code %in% c("IFAW13-158Mn", "IFAW16-227Mn", "IFAW17-182Eg", "IFAW19-287Mn", "IFAW20-009Mn"),
-         ifelse(Sample_seq == "baleen", if_else(ID_code == "IFAW13-158Mn", 
+  filter(
+    Compound %in% PFASofInterest,
+    #Compound %in% c("PFOS", "FOSA", "PFUdA"),
+    Sample_type != "gum-baleen interface",
+    ID_code %in% c("IFAW13-158Mn", "IFAW16-227Mn", "IFAW17-182Eg", "IFAW19-287Mn", "IFAW20-009Mn"),
+    ifelse(Sample_seq == "baleen", if_else(ID_code == "IFAW13-158Mn", 
                                                  Sample_seq == 2, Sample_seq == 1), TRUE)) %>% 
   group_by(ID_code, Sample_type, Plate_num) %>% 
   summarise(Total_PFAS = sum(Conc_Corr_num, na.rm = TRUE))
          
-
-
 
 
 

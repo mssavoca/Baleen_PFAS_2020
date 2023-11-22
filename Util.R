@@ -130,7 +130,11 @@ Baleen_PFAS_data_comb <- left_join(PFAS_data_raw, Baleen_PFAS_samples,
                                                      ifelse(ID_code == "COA20-0808Ba", "COA200808Ba",
                                                             ifelse(ID_code == "COA20-0804Ba", "COA200804Ba",
                                                                    ifelse(ID_code == "COA1415-Mn", "COA141225Mn",
-                                                                          ifelse(ID_code == "COA15-0611Mn", "COA150611Mn", ID_code))))))))
+                                                                          ifelse(ID_code == "COA15-0611Mn", "COA150611Mn", ID_code)))))))),
+           Combined_Column = ifelse(is.na(Plate_num), ID_code, 
+                                    paste(ID_code, ifelse(Plate_num == 2, "p2", "p1"), sep = " ")),
+           Combined_Column_corr = ifelse(is.na(Plate_num), ID_code_corr, 
+                                         paste(ID_code_corr, ifelse(Plate_num == 2, "p2", "p1"), sep = " "))
                                ) %>% 
   rename("Sample_seq" = "Sample_seq (if necessary)") %>% 
   group_by(ID_code, Sample_seq) %>%
